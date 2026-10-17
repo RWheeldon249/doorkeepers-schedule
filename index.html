@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doorkeepers – Meeting Availability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script>
+  /* ===================================================================
+     SETUP: paste your Google Apps Script web app URL below,
+     between the quote marks (it starts with https://script.google.com/)
+     =================================================================== */
+  const SCRIPT_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+</script>
+<style>
+  :root {
+    --teal: #2b7a78;
+    --teal-dark: #1f5c5a;
+    --teal-light: #e3f1f0;
+    --teal-mid: #b9dcd9;
+    --grey-bg: #eef0f1;
+    --grey-line: #d5d9dc;
+    --grey-text: #5b6368;
+    --ink: #22292d;
+    --white: #ffffff;
+    --error: #b3413a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--grey-bg);
+    color: var(--ink);
+    font-family: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px 48px; }
+
+  header.banner {
+    background: var(--teal);
+    color: var(--white);
+    border-radius: 14px 14px 0 0;
+    padding: 28px 28px 24px;
+  }
+  .banner .eyebrow {
+    font-size: 13px; letter-spacing: .14em; text-transform: uppercase;
+    opacity: .85; margin: 0 0 4px; font-weight: 700;
+  }
+  .banner h1 {
+    font-family: "Lora", Georgia, serif; font-weight: 600;
+    font-size: 34px; margin: 0; letter-spacing: .01em;
+  }
+  .card {
+    background: var(--white);
+    border-radius: 0 0 14px 14px;
+    padding: 24px 28px 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .intro { margin: 0 0 8px; font-size: 18px; }
+
+  .field { margin-top: 28px; }
+  .field > label.q, .field > .q {
+    display: block; font-weight: 700; margin-bottom: 8px; font-size: 17px;
+  }
+  .req { color: var(--teal); }
+  .hint { color: var(--grey-text); font-size: 15px; margin: -4px 0 10px; }
+
+  input[type=text], textarea {
+    width: 100%; font: inherit; color: var(--ink);
+    padding: 11px 13px; border: 1.5px solid var(--grey-line);
+    border-radius: 9px; background: var(--white);
+  }
+  textarea { min-height: 110px; resize: vertical; }
+  input[type=text]:focus, textarea:focus {
+    outline: none; border-color: var(--teal);
+    box-shadow: 0 0 0 3px var(--teal-light);
+  }
+
+  /* Radio options */
+  .options { display: grid; gap: 8px; }
+  .opt {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border: 1.5px solid var(--grey-line);
+    border-radius: 9px; cursor: pointer; background: var(--white);
+  }
+  .opt:hover { border-color: var(--teal-mid); }
+  .opt input { accent-color: var(--teal); width: 20px; height: 20px; margin: 0; flex: none; }
+  .opt:has(input:checked) { border-color: var(--teal); background: var(--teal-light); }
+
+  /* Availability grid */
+  .grid-callout {
+    background: var(--teal-light); border-left: 4px solid var(--teal);
+    padding: 10px 14px; border-radius: 6px; font-weight: 700; margin-bottom: 12px;
+  }
+  table.avail {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    border: 1.5px solid var(--grey-line); border-radius: 10px; overflow: hidden;
+    table-layout: fixed;
+  }
+  .avail th, .avail td { text-align: center; padding: 10px 4px; }
+  .avail thead th {
+    background: var(--teal); color: var(--white);
+    font-size: 14px; font-weight: 700; line-height: 1.25; vertical-align: bottom;
+  }
+  .avail thead th small { display: block; font-weight: 400; opacity: .9; font-size: 12.5px; }
+  .avail thead th.date-col { text-align: left; padding-left: 14px; }
+  .avail col.date-col { width: 24%; }
+  .avail tbody th {
+    text-align: left; padding-left: 14px; font-weight: 700; font-size: 15.5px;
+    white-space: nowrap;
+  }
+  .avail tbody th span { color: var(--grey-text); font-weight: 400; }
+  .avail tbody tr:nth-child(even) { background: #f7f8f9; }
+  .avail tbody tr + tr > * { border-top: 1px solid var(--grey-line); }
+  .avail td label {
+    display: flex; justify-content: center; align-items: center;
+    min-height: 34px; cursor: pointer;
+  }
+  .avail td input { accent-color: var(--teal); width: 22px; height: 22px; margin: 0; cursor: pointer; }
+  .avail td.sep { border-left: 1px dashed var(--grey-line); }
+  .avail tr.missing > * { background: #fbeceb; }
+  .grid-note { color: var(--grey-text); font-size: 14.5px; margin-top: 8px; }
+
+  .error-msg { color: var(--error); font-size: 15px; margin-top: 6px; display: none; }
+  .show-error .error-msg { display: block; }
+  .show-error input[type=text] { border-color: var(--error); }
+
+  button.submit {
+    margin-top: 32px; width: 100%;
+    font: inherit; font-weight: 700; font-size: 18px;
+    background: var(--teal); color: var(--white);
+    border: none; border-radius: 10px; padding: 14px; cursor: pointer;
+  }
+  button.submit:hover { background: var(--teal-dark); }
+  button.submit:disabled { opacity: .6; cursor: default; }
+  .form-status { text-align: center; margin-top: 12px; color: var(--error); font-size: 15px; min-height: 1em; }
+
+  .thanks { text-align: center; padding: 24px 8px 8px; display: none; }
+  .thanks h2 { font-family: "Lora", Georgia, serif; color: var(--teal); font-size: 28px; margin: 0 0 8px; }
+  .done .thanks { display: block; }
+  .done form { display: none; }
+
+  footer { text-align: center; color: var(--grey-text); font-size: 13.5px; margin-top: 18px; }
+
+  @media (max-width: 480px) {
+    .wrap { padding: 12px 10px 40px; }
+    header.banner { padding: 22px 18px 18px; }
+    .banner h1 { font-size: 28px; }
+    .card { padding: 18px 16px 24px; }
+    .avail thead th { font-size: 12.5px; }
+    .avail thead th small { font-size: 11px; }
+    .avail tbody th { padding-left: 10px; font-size: 14.5px; }
+    .avail thead th.date-col { padding-left: 10px; }
+    .avail col.date-col { width: 22%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header class="banner">
+    <p class="eyebrow">Recovery Ministry</p>
+    <h1>Doorkeepers</h1>
+  </header>
+
+  <div class="card">
+    <form id="availForm" novalidate>
+      <p class="intro">Please fill in this short form to help us create a schedule for meetings through November!</p>
+
+      <div class="field" id="f-name">
+        <label class="q" for="name">Your name <span class="req">*</span></label>
+        <input type="text" id="name" name="name" autocomplete="name">
+        <div class="error-msg">Please enter your name.</div>
+      </div>
+
+      <div class="field" id="f-contact">
+        <label class="q" for="contact">Phone or email <span class="hint" style="font-weight:400">(optional)</span></label>
+        <p class="hint">So we can send you the final schedule.</p>
+        <input type="text" id="contact" name="contact" autocomplete="email">
+      </div>
+
+      <div class="field" id="f-leading">
+        <div class="q">Would you be comfortable leading a meeting? <span class="req">*</span></div>
+        <div class="options">
+          <label class="opt"><input type="radio" name="leading" value="Yes!"> Yes!</label>
+          <label class="opt"><input type="radio" name="leading" value="I'd like to learn first"> I'd like to learn first</label>
+          <label class="opt"><input type="radio" name="leading" value="I'd prefer to just participate for now"> I'd prefer to just participate for now</label>
+        </div>
+        <div class="error-msg">Please choose one option.</div>
+      </div>
+
+      <div class="field" id="f-grid">
+        <div class="grid-callout">Please select ALL dates and time-slots you will be available!</div>
+        <table class="avail" id="availTable">
+          <colgroup><col class="date-col"><col><col><col><col></colgroup>
+          <thead>
+            <tr>
+              <th class="date-col">Fridays</th>
+              <th>WDR<small>6:00–7:00 pm</small></th>
+              <th>Pyramid<small>7:15–8:15 pm</small></th>
+              <th>Not sure yet</th>
+              <th>Can't make it</th>
+            </tr>
+          </thead>
+          <tbody id="gridBody"></tbody>
+        </table>
+        <p class="grid-note">Please mark something for every date. You can tick both WDR and Pyramid.</p>
+        <div class="error-msg">Please mark an answer for each date (highlighted above).</div>
+      </div>
+
+      <div class="field" id="f-comments">
+        <label class="q" for="comments">Any comments, ideas or feedback</label>
+        <textarea id="comments" name="comments"></textarea>
+      </div>
+
+      <button type="submit" class="submit" id="submitBtn">Submit</button>
+      <div class="form-status" id="formStatus" role="status"></div>
+    </form>
+
+    <div class="thanks" role="status">
+      <h2>Thank you!</h2>
+      <p>Your availability has been received. We'll be in touch with the schedule soon.</p>
+    </div>
+  </div>
+
+  <footer>Doorkeepers Recovery Ministry</footer>
+</div>
+
+<script>
+  const DATES = ["10/23", "10/30", "11/6", "11/13", "11/20", "11/27"];
+  const SLOTS = [
+    { key: "WDR", label: "WDR 6:00–7:00 pm", type: "slot" },
+    { key: "Pyramid", label: "Pyramid 7:15–8:15 pm", type: "slot" },
+    { key: "Not sure yet", label: "Not sure yet", type: "other" },
+    { key: "Can't make it", label: "Can't make it", type: "other" }
+  ];
+
+  const body = document.getElementById("gridBody");
+  DATES.forEach((d, i) => {
+    const tr = document.createElement("tr");
+    tr.dataset.date = d;
+    const th = document.createElement("th");
+    th.scope = "row";
+    th.innerHTML = '<span>Fri</span> ' + d;
+    tr.appendChild(th);
+    SLOTS.forEach((s, j) => {
+      const td = document.createElement("td");
+      if (j === 2) td.className = "sep";
+      const id = "d" + i + "s" + j;
+      td.innerHTML =
+        '<label for="' + id + '"><input type="checkbox" id="' + id + '" data-type="' + s.type +
+        '" value="' + s.key + '" aria-label="Friday ' + d + ': ' + s.label + '"></label>';
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+
+  // Keep each row sensible: "Not sure yet" / "Can't make it" clear the time-slots, and vice versa.
+  body.addEventListener("change", (e) => {
+    const box = e.target;
+    if (!box.checked) return;
+    const row = box.closest("tr");
+    row.classList.remove("missing");
+    row.querySelectorAll("input").forEach((other) => {
+      if (other === box) return;
+      if (box.dataset.type === "other" || other.dataset.type === "other") other.checked = false;
+    });
+  });
+
+  function rowValue(row) {
+    return [...row.querySelectorAll("input:checked")].map((b) => b.value).join(" + ");
+  }
+
+  const form = document.getElementById("availForm");
+  const btn = document.getElementById("submitBtn");
+  const status = document.getElementById("formStatus");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    status.textContent = "";
+    let ok = true;
+    let firstBad = null;
+
+    const nameField = document.getElementById("f-name");
+    const name = document.getElementById("name").value.trim();
+    nameField.classList.toggle("show-error", !name);
+    if (!name) { ok = false; firstBad = firstBad || nameField; }
+
+    const leadField = document.getElementById("f-leading");
+    const leading = form.querySelector('input[name="leading"]:checked');
+    leadField.classList.toggle("show-error", !leading);
+    if (!leading) { ok = false; firstBad = firstBad || leadField; }
+
+    const gridField = document.getElementById("f-grid");
+    let gridOk = true;
+    body.querySelectorAll("tr").forEach((row) => {
+      const empty = !rowValue(row);
+      row.classList.toggle("missing", empty);
+      if (empty) gridOk = false;
+    });
+    gridField.classList.toggle("show-error", !gridOk);
+    if (!gridOk) { ok = false; firstBad = firstBad || gridField; }
+
+    if (!ok) { firstBad.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+
+    if (!SCRIPT_URL || SCRIPT_URL.indexOf("script.google.com") === -1) {
+      status.textContent = "This form isn't connected yet (the Google Sheets link still needs to be added).";
+      return;
+    }
+
+    const data = new URLSearchParams();
+    data.append("name", name);
+    data.append("contact", document.getElementById("contact").value.trim());
+    data.append("leading", leading.value);
+    body.querySelectorAll("tr").forEach((row) => data.append("date_" + row.dataset.date, rowValue(row)));
+    data.append("comments", document.getElementById("comments").value.trim());
+
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+    try {
+      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: data });
+      document.getElementById("app").classList.add("done");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      status.textContent = "Sorry, something went wrong sending your answers. Please check your connection and try again.";
+      btn.disabled = false;
+      btn.textContent = "Submit";
+    }
+  });
+
+  // Clear error highlights as people fix things
+  document.getElementById("name").addEventListener("input", () =>
+    document.getElementById("f-name").classList.remove("show-error"));
+  form.querySelectorAll('input[name="leading"]').forEach((r) =>
+    r.addEventListener("change", () => document.getElementById("f-leading").classList.remove("show-error")));
+</script>
+</body>
+</html>

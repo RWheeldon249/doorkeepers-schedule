@@ -7,13 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-<script>
-  /* ===================================================================
-     SETUP: paste your Google Apps Script web app URL below,
-     between the quote marks (it starts with https://script.google.com/)
-     =================================================================== */
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXlpTxayXfJ7Q5xSozHPtDF4ExZOMN0ecb-h8GhrT9KAswZrZOcZlv4PXkQ_j31EGD/exec";
-</script>
+<script src="config.js"></script>
 <style>
   :root {
     --teal: #2b7a78;
@@ -52,6 +46,15 @@
     font-family: "Lora", Georgia, serif; font-weight: 600;
     font-size: 34px; margin: 0; letter-spacing: .01em;
   }
+  nav.tabs { display: flex; background: var(--teal-dark); }
+  nav.tabs a {
+    flex: 1; text-align: center; padding: 11px 8px; color: var(--white);
+    text-decoration: none; font-weight: 700; font-size: 15px; opacity: .8;
+    border-bottom: 3px solid transparent;
+  }
+  nav.tabs a:hover { opacity: 1; }
+  nav.tabs a[aria-current="page"] { opacity: 1; border-bottom-color: var(--white); background: rgba(255,255,255,.08); }
+
   .card {
     background: var(--white);
     border-radius: 0 0 14px 14px;
@@ -78,7 +81,6 @@
     box-shadow: 0 0 0 3px var(--teal-light);
   }
 
-  /* Radio options */
   .options { display: grid; gap: 8px; }
   .opt {
     display: flex; align-items: center; gap: 12px;
@@ -89,7 +91,6 @@
   .opt input { accent-color: var(--teal); width: 20px; height: 20px; margin: 0; flex: none; }
   .opt:has(input:checked) { border-color: var(--teal); background: var(--teal-light); }
 
-  /* Availability grid */
   .grid-callout {
     background: var(--teal-light); border-left: 4px solid var(--teal);
     padding: 10px 14px; border-radius: 6px; font-weight: 700; margin-bottom: 12px;
@@ -139,6 +140,7 @@
 
   .thanks { text-align: center; padding: 24px 8px 8px; display: none; }
   .thanks h2 { font-family: "Lora", Georgia, serif; color: var(--teal); font-size: 28px; margin: 0 0 8px; }
+  .thanks a { color: var(--teal); font-weight: 700; }
   .done .thanks { display: block; }
   .done form { display: none; }
 
@@ -148,6 +150,7 @@
     .wrap { padding: 12px 10px 40px; }
     header.banner { padding: 22px 18px 18px; }
     .banner h1 { font-size: 28px; }
+    nav.tabs a { font-size: 14px; }
     .card { padding: 18px 16px 24px; }
     .avail thead th { font-size: 12.5px; }
     .avail thead th small { font-size: 11px; }
@@ -163,10 +166,14 @@
     <p class="eyebrow">Recovery Ministry</p>
     <h1>Doorkeepers</h1>
   </header>
+  <nav class="tabs">
+    <a href="./" aria-current="page">Meeting availability</a>
+    <a href="stockings.html">Christmas stockings</a>
+  </nav>
 
   <div class="card">
     <form id="availForm" novalidate>
-      <p class="intro">Please fill in this short form to help us create a schedule for meetings through November!</p>
+      <p class="intro">Please fill in this short form to help us create a schedule for meetings through December and into the New Year!</p>
 
       <div class="field" id="f-name">
         <label class="q" for="name">Your name <span class="req">*</span></label>
@@ -221,6 +228,7 @@
     <div class="thanks" role="status">
       <h2>Thank you!</h2>
       <p>Your availability has been received. We'll be in touch with the schedule soon.</p>
+      <p>Would you like to help with our Christmas stockings? <a href="stockings.html">See what's needed</a></p>
     </div>
   </div>
 
@@ -228,7 +236,11 @@
 </div>
 
 <script>
-  const DATES = ["10/23", "10/30", "11/6", "11/13", "11/20", "11/27"];
+  /* ===== To start a new round: change ROUND and DATES below. =====
+     Each round's answers go into their own tab in your Google Sheet. */
+  const ROUND = "Dec-Jan";
+  const DATES = ["12/4", "12/11", "12/18", "12/25", "1/1"];
+
   const SLOTS = [
     { key: "WDR", label: "WDR 6:00–7:00 pm", type: "slot" },
     { key: "Pyramid", label: "Pyramid 7:15–8:15 pm", type: "slot" },
@@ -256,7 +268,7 @@
     body.appendChild(tr);
   });
 
-  // Keep each row sensible: "Not sure yet" / "Can't make it" clear the time-slots, and vice versa.
+  // "Not sure yet" / "Can't make it" clear the time-slots in that row, and vice versa.
   body.addEventListener("change", (e) => {
     const box = e.target;
     if (!box.checked) return;
@@ -304,12 +316,16 @@
 
     if (!ok) { firstBad.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
 
-    if (!SCRIPT_URL || SCRIPT_URL.indexOf("script.google.com") === -1) {
+    const url = typeof SCRIPT_URL === "string" ? SCRIPT_URL : "";
+    if (url.indexOf("script.google.com") === -1) {
       status.textContent = "This form isn't connected yet (the Google Sheets link still needs to be added).";
       return;
     }
 
     const data = new URLSearchParams();
+    data.append("form", "availability");
+    data.append("round", ROUND);
+    data.append("dates", DATES.join(","));
     data.append("name", name);
     data.append("contact", document.getElementById("contact").value.trim());
     data.append("leading", leading.value);
@@ -319,7 +335,7 @@
     btn.disabled = true;
     btn.textContent = "Sending…";
     try {
-      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: data });
+      await fetch(url, { method: "POST", mode: "no-cors", body: data });
       document.getElementById("app").classList.add("done");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -329,7 +345,6 @@
     }
   });
 
-  // Clear error highlights as people fix things
   document.getElementById("name").addEventListener("input", () =>
     document.getElementById("f-name").classList.remove("show-error"));
   form.querySelectorAll('input[name="leading"]').forEach((r) =>

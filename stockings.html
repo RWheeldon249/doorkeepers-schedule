@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doorkeepers – Christmas Stockings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<style>
+  :root {
+    --teal: #2b7a78;
+    --teal-dark: #1f5c5a;
+    --teal-light: #e3f1f0;
+    --teal-mid: #b9dcd9;
+    --grey-bg: #eef0f1;
+    --grey-line: #d5d9dc;
+    --grey-text: #5b6368;
+    --ink: #22292d;
+    --white: #ffffff;
+    --error: #b3413a;
+    --warn-bg: #fdf3ea;
+    --warn-line: #d9894a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--grey-bg);
+    color: var(--ink);
+    font-family: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px 48px; }
+
+  header.banner {
+    background: var(--teal); color: var(--white);
+    border-radius: 14px 14px 0 0; padding: 28px 28px 24px;
+  }
+  .banner .eyebrow {
+    font-size: 13px; letter-spacing: .14em; text-transform: uppercase;
+    opacity: .85; margin: 0 0 4px; font-weight: 700;
+  }
+  .banner h1 { font-family: "Lora", Georgia, serif; font-weight: 600; font-size: 34px; margin: 0; }
+  nav.tabs { display: flex; background: var(--teal-dark); }
+  nav.tabs a {
+    flex: 1; text-align: center; padding: 11px 8px; color: var(--white);
+    text-decoration: none; font-weight: 700; font-size: 15px; opacity: .8;
+    border-bottom: 3px solid transparent;
+  }
+  nav.tabs a:hover { opacity: 1; }
+  nav.tabs a[aria-current="page"] { opacity: 1; border-bottom-color: var(--white); background: rgba(255,255,255,.08); }
+
+  .card {
+    background: var(--white); border-radius: 0 0 14px 14px;
+    padding: 24px 28px 28px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  h2.page-title { font-family: "Lora", Georgia, serif; font-weight: 600; font-size: 26px; margin: 0 0 6px; color: var(--teal-dark); }
+  h3 { font-size: 18px; margin: 32px 0 4px; }
+  .intro { margin: 0 0 18px; font-size: 17.5px; }
+  .muted { color: var(--grey-text); font-size: 15px; }
+
+  .goal { display: flex; gap: 10px; margin: 0 0 18px; }
+  .goal div {
+    flex: 1; background: var(--teal-light); border-radius: 10px; padding: 12px; text-align: center;
+  }
+  .goal strong { display: block; font-family: "Lora", Georgia, serif; font-size: 30px; color: var(--teal-dark); line-height: 1.1; }
+  .goal span { font-size: 14.5px; color: var(--grey-text); }
+
+  .info {
+    border-left: 4px solid var(--teal); background: var(--teal-light);
+    border-radius: 6px; padding: 12px 16px; margin-bottom: 12px;
+  }
+  .info.warn { border-left-color: var(--warn-line); background: var(--warn-bg); }
+  .info p { margin: 0; }
+  .info ul { margin: 6px 0 0; padding-left: 20px; }
+  .info li + li { margin-top: 3px; }
+
+  /* Item list */
+  .group-label {
+    margin: 26px 0 8px; font-weight: 700; font-size: 14px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--teal-dark);
+  }
+  .items { display: grid; gap: 8px; }
+  .item {
+    display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center;
+    border: 1.5px solid var(--grey-line); border-radius: 10px; padding: 12px 14px;
+  }
+  .item .name { font-weight: 700; }
+  .item .sub { font-size: 14px; color: var(--grey-text); }
+  .item .bar { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: var(--grey-bg); overflow: hidden; }
+  .item .bar i { display: block; height: 100%; background: var(--teal); border-radius: 4px; width: 0; transition: width .4s; }
+  .item .count { grid-column: 1 / -1; font-size: 14px; color: var(--grey-text); }
+  .item.full { background: #f6faf9; }
+  .item.full .count { color: var(--teal-dark); font-weight: 700; }
+  .item button {
+    font: inherit; font-size: 15px; font-weight: 700; color: var(--teal-dark);
+    background: var(--white); border: 1.5px solid var(--teal); border-radius: 8px;
+    padding: 6px 12px; cursor: pointer; white-space: nowrap;
+  }
+  .item button:hover { background: var(--teal-light); }
+
+  /* Form */
+  .signup { margin-top: 34px; padding-top: 6px; border-top: 1.5px solid var(--grey-line); scroll-margin-top: 16px; }
+  .field { margin-top: 20px; }
+  .field > label.q, .field > .q { display: block; font-weight: 700; margin-bottom: 8px; }
+  .req { color: var(--teal); }
+  .hint { color: var(--grey-text); font-size: 14.5px; margin: -4px 0 8px; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%; font: inherit; color: var(--ink);
+    padding: 11px 13px; border: 1.5px solid var(--grey-line);
+    border-radius: 9px; background: var(--white);
+  }
+  input[type=number] { max-width: 140px; }
+  textarea { min-height: 80px; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-light); }
+  .options { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opt {
+    display: flex; align-items: center; gap: 8px; padding: 9px 14px;
+    border: 1.5px solid var(--grey-line); border-radius: 9px; cursor: pointer;
+  }
+  .opt input { accent-color: var(--teal); width: 18px; height: 18px; margin: 0; }
+  .opt:has(input:checked) { border-color: var(--teal); background: var(--teal-light); }
+  #otherFields { display: none; }
+  .is-other #otherFields { display: block; }
+
+  .error-msg { color: var(--error); font-size: 15px; margin-top: 6px; display: none; }
+  .show-error .error-msg { display: block; }
+  .show-error input, .show-error select { border-color: var(--error); }
+
+  button.submit {
+    margin-top: 26px; width: 100%; font: inherit; font-weight: 700; font-size: 18px;
+    background: var(--teal); color: var(--white); border: none; border-radius: 10px;
+    padding: 14px; cursor: pointer;
+  }
+  button.submit:hover { background: var(--teal-dark); }
+  button.submit:disabled { opacity: .6; cursor: default; }
+  .form-status { text-align: center; margin-top: 12px; color: var(--error); font-size: 15px; min-height: 1em; }
+  .success {
+    display: none; background: var(--teal-light); border-radius: 10px; padding: 14px 16px;
+    text-align: center; margin-top: 18px;
+  }
+  .success strong { color: var(--teal-dark); font-family: "Lora", Georgia, serif; font-size: 20px; display: block; }
+  .success.show { display: block; }
+
+  /* Sign-up list */
+  .pledges { list-style: none; margin: 10px 0 0; padding: 0; border: 1.5px solid var(--grey-line); border-radius: 10px; overflow: hidden; }
+  .pledges li { padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; }
+  .pledges li + li { border-top: 1px solid var(--grey-line); }
+  .pledges li:nth-child(even) { background: #f7f8f9; }
+  .pledges .who { font-weight: 700; }
+  .pledges .what { flex: 1; min-width: 160px; }
+  .pledges .qty { color: var(--grey-text); font-size: 14.5px; white-space: nowrap; }
+  .pledges .note { flex-basis: 100%; color: var(--grey-text); font-size: 14.5px; font-style: italic; }
+  .pledges .empty { color: var(--grey-text); text-align: center; padding: 16px; }
+
+  footer { text-align: center; color: var(--grey-text); font-size: 13.5px; margin-top: 18px; }
+
+  @media (max-width: 480px) {
+    .wrap { padding: 12px 10px 40px; }
+    header.banner { padding: 22px 18px 18px; }
+    .banner h1 { font-size: 28px; }
+    nav.tabs a { font-size: 14px; }
+    .card { padding: 18px 16px 24px; }
+    .goal strong { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="banner">
+    <p class="eyebrow">Recovery Ministry</p>
+    <h1>Doorkeepers</h1>
+  </header>
+  <nav class="tabs">
+    <a href="./">Meeting availability</a>
+    <a href="stockings.html" aria-current="page">Christmas stockings</a>
+  </nav>
+
+  <div class="card">
+    <h2 class="page-title">Christmas Stockings</h2>
+    <p class="intro">This Christmas we're filling stockings for the women and men we visit, and we'd love your help! Choose an item below and tell us how many stockings you can cover. Everyone can see the list, so we won't double up.</p>
+
+    <div class="goal">
+      <div><strong>50</strong><span>women's stockings</span></div>
+      <div><strong>40</strong><span>men's stockings</span></div>
+    </div>
+
+    <div class="info">
+      <p><strong>Drop-off deadline: Thursday, December 17.</strong> Please bring your items to our stocking assembly meeting.</p>
+    </div>
+
+    <div class="info warn">
+      <p><strong>Please check before you buy. We can't include:</strong></p>
+      <ul>
+        <li>Anything with <strong>alcohol in the first 3 ingredients</strong> (check lotions, sprays and toiletries)</li>
+        <li>Anything <strong>sharp or easily breakable</strong>, such as glass, razors or scissors</li>
+        <li>Any candy except <strong>hard candy</strong>, and it must be <strong>individually wrapped</strong> (no chocolate or soft candy)</li>
+      </ul>
+    </div>
+
+    <h3>What's needed</h3>
+    <p class="muted" id="loadStatus">Loading sign-ups…</p>
+    <div id="itemList"></div>
+
+    <section class="signup" id="signup">
+      <h3>Sign up to bring something</h3>
+      <form id="pledgeForm" novalidate>
+        <div class="field" id="f-name">
+          <label class="q" for="name">Your name <span class="req">*</span></label>
+          <p class="hint">This will show on the list for everyone.</p>
+          <input type="text" id="name" autocomplete="name">
+          <div class="error-msg">Please enter your name.</div>
+        </div>
+
+        <div class="field" id="f-item">
+          <label class="q" for="item">What will you bring? <span class="req">*</span></label>
+          <select id="item"></select>
+          <div class="error-msg">Please choose an item.</div>
+        </div>
+
+        <div id="otherFields">
+          <div class="field" id="f-otherItem">
+            <label class="q" for="otherItem">Describe your item <span class="req">*</span></label>
+            <input type="text" id="otherItem" placeholder="e.g. Fuzzy hats">
+            <div class="error-msg">Please tell us what you'll bring.</div>
+          </div>
+          <div class="field" id="f-otherFor">
+            <div class="q">Which stockings is it for? <span class="req">*</span></div>
+            <div class="options">
+              <label class="opt"><input type="radio" name="otherFor" value="Women's"> Women's</label>
+              <label class="opt"><input type="radio" name="otherFor" value="Men's"> Men's</label>
+              <label class="opt"><input type="radio" name="otherFor" value="Both"> Both</label>
+            </div>
+            <div class="error-msg">Please choose one.</div>
+          </div>
+        </div>
+
+        <div class="field" id="f-qty">
+          <label class="q" for="qty">How many stockings will you cover? <span class="req">*</span></label>
+          <p class="hint">For example, a 24-pack of lip balm covers 24 stockings.</p>
+          <input type="number" id="qty" min="1" max="500" inputmode="numeric">
+          <div class="error-msg">Please enter a number (1 or more).</div>
+        </div>
+
+        <div class="field">
+          <label class="q" for="note">Note <span class="hint" style="font-weight:400">(optional)</span></label>
+          <input type="text" id="note" placeholder="e.g. Peppermint flavor">
+        </div>
+
+        <button type="submit" class="submit" id="submitBtn">Sign up</button>
+        <div class="form-status" id="formStatus" role="status"></div>
+      </form>
+      <div class="success" id="success" role="status">
+        <strong>Thank you!</strong>
+        You've been added to the list below. Feel free to sign up for another item too.
+      </div>
+    </section>
+
+    <h3>Who's bringing what</h3>
+    <ul class="pledges" id="pledgeList"><li class="empty">Loading…</li></ul>
+    <p class="muted" style="margin-top:10px">Need to change your sign-up? Just let one of the Doorkeepers organizers know.</p>
+  </div>
+
+  <footer>Doorkeepers Recovery Ministry</footer>
+</div>
+
+<script>
+  /* ===== Edit the stocking items here =====
+     for: "Both" (50 + 40 = 90 stockings), "Women's" (50) or "Men's" (40) */
+  const TARGETS = { "Both": 90, "Women's": 50, "Men's": 40 };
+  const ITEMS = [
+    { name: "Candy canes", for: "Both" },
+    { name: "Hard candy", for: "Both", sub: "Individually wrapped" },
+    { name: "Lip balm", for: "Both" },
+    { name: "Toothbrush & toothpaste", for: "Both" },
+    { name: "Hand lotion", for: "Both", sub: "Check that alcohol isn't in the first 3 ingredients" },
+    { name: "Small notebook & pen", for: "Both" },
+    { name: "Scripture or devotional card", for: "Both" },
+    { name: "Cozy socks (women's)", for: "Women's" },
+    { name: "Gloves (women's)", for: "Women's" },
+    { name: "Deodorant (women's)", for: "Women's" },
+    { name: "Hair ties", for: "Women's" },
+    { name: "Socks (men's)", for: "Men's" },
+    { name: "Gloves (men's)", for: "Men's" },
+    { name: "Deodorant (men's)", for: "Men's" }
+  ];
+  const GROUPS = [
+    { for: "Both", label: "For all stockings (90)" },
+    { for: "Women's", label: "Women's stockings (50)" },
+    { for: "Men's", label: "Men's stockings (40)" }
+  ];
+  const OTHER = "__other__";
+
+  const url = typeof SCRIPT_URL === "string" && SCRIPT_URL.indexOf("script.google.com") !== -1 ? SCRIPT_URL : "";
+  let pledges = [];
+
+  const $ = (id) => document.getElementById(id);
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  // ---------- Item select ----------
+  const select = $("item");
+  select.appendChild(new Option("Choose an item…", ""));
+  GROUPS.forEach((g) => {
+    const og = document.createElement("optgroup");
+    og.label = g.label;
+    ITEMS.filter((it) => it.for === g.for).forEach((it) => og.appendChild(new Option(it.name, it.name)));
+    select.appendChild(og);
+  });
+  select.appendChild(new Option("Something else…", OTHER));
+  select.addEventListener("change", () => {
+    $("pledgeForm").classList.toggle("is-other", select.value === OTHER);
+    $("f-item").classList.remove("show-error");
+  });
+
+  // ---------- Render ----------
+  function totals() {
+    const t = {};
+    pledges.forEach((p) => { t[p.item] = (t[p.item] || 0) + (Number(p.qty) || 0); });
+    return t;
+  }
+
+  function renderItems() {
+    const t = totals();
+    const box = $("itemList");
+    box.textContent = "";
+    GROUPS.forEach((g) => {
+      box.appendChild(el("div", "group-label", g.label));
+      const list = el("div", "items");
+      ITEMS.filter((it) => it.for === g.for).forEach((it) => {
+        const target = TARGETS[it.for];
+        const have = t[it.name] || 0;
+        const full = have >= target;
+        const card = el("div", "item" + (full ? " full" : ""));
+        const text = el("div");
+        text.appendChild(el("div", "name", it.name));
+        if (it.sub) text.appendChild(el("div", "sub", it.sub));
+        card.appendChild(text);
+        const b = el("button", null, full ? "Add more" : "Sign up");
+        b.type = "button";
+        b.addEventListener("click", () => pick(it.name, Math.max(target - have, 0)));
+        card.appendChild(b);
+        const bar = el("div", "bar");
+        const fill = el("i");
+        fill.style.width = Math.min(100, (have / target) * 100) + "%";
+        bar.appendChild(fill);
+        card.appendChild(bar);
+        card.appendChild(el("div", "count",
+          full ? "✓ All " + target + " stockings covered — thank you!" : have + " of " + target + " stockings covered"));
+        list.appendChild(card);
+      });
+      box.appendChild(list);
+    });
+  }
+
+  function renderPledges() {
+    const ul = $("pledgeList");
+    ul.textContent = "";
+    if (!pledges.length) {
+      ul.appendChild(el("li", "empty", url ? "No sign-ups yet. Be the first!" : "The sign-up list isn't connected yet."));
+      return;
+    }
+    pledges.slice().reverse().forEach((p) => {
+      const li = el("li");
+      li.appendChild(el("span", "who", p.name));
+      li.appendChild(el("span", "what", p.item + (p.stockings && p.stockings !== "Both" && !ITEMS.some((i) => i.name === p.item) ? " (" + p.stockings + ")" : "")));
+      li.appendChild(el("span", "qty", "for " + p.qty + " stocking" + (Number(p.qty) === 1 ? "" : "s")));
+      if (p.note) li.appendChild(el("span", "note", p.note));
+      ul.appendChild(li);
+    });
+  }
+
+  function render() { renderItems(); renderPledges(); }
+
+  function pick(name, remaining) {
+    select.value = name;
+    $("pledgeForm").classList.remove("is-other");
+    $("f-item").classList.remove("show-error");
+    if (!$("qty").value && remaining > 0) $("qty").placeholder = "Up to " + remaining + " still needed";
+    $("success").classList.remove("show");
+    $("signup").scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => $("name").value ? $("qty").focus() : $("name").focus(), 400);
+  }
+
+  // ---------- Load from Google Sheets ----------
+  async function load() {
+    const status = $("loadStatus");
+    if (!url) {
+      status.textContent = "The sign-up list isn't connected yet.";
+      render();
+      return;
+    }
+    try {
+      const res = await fetch(url + "?action=pledges&t=" + Date.now());
+      const data = await res.json();
+      pledges = Array.isArray(data.pledges) ? data.pledges : [];
+      status.textContent = "Tap “Sign up” on any item. Bars fill as people sign up.";
+    } catch (err) {
+      status.textContent = "We couldn't load the latest sign-ups just now. Please refresh the page to try again.";
+    }
+    render();
+  }
+
+  // ---------- Submit ----------
+  const form = $("pledgeForm");
+  const btn = $("submitBtn");
+
+  function check(fieldId, ok) {
+    $(fieldId).classList.toggle("show-error", !ok);
+    return ok;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("formStatus").textContent = "";
+    const name = $("name").value.trim();
+    const isOther = select.value === OTHER;
+    const otherFor = form.querySelector('input[name="otherFor"]:checked');
+    const qty = parseInt($("qty").value, 10);
+
+    const results = [
+      check("f-name", !!name),
+      check("f-item", !!select.value),
+      !isOther || check("f-otherItem", !!$("otherItem").value.trim()),
+      !isOther || check("f-otherFor", !!otherFor),
+      check("f-qty", qty >= 1 && qty <= 500)
+    ];
+    if (results.includes(false)) {
+      form.querySelector(".show-error").scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (!url) {
+      $("formStatus").textContent = "This page isn't connected yet (the Google Sheets link still needs to be added).";
+      return;
+    }
+
+    const known = ITEMS.find((it) => it.name === select.value);
+    const pledge = {
+      name: name,
+      item: isOther ? $("otherItem").value.trim() : select.value,
+      stockings: isOther ? otherFor.value : known.for,
+      qty: qty,
+      note: $("note").value.trim()
+    };
+
+    const data = new URLSearchParams();
+    data.append("form", "stocking");
+    Object.keys(pledge).forEach((k) => data.append(k, pledge[k]));
+
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+    try {
+      await fetch(url, { method: "POST", mode: "no-cors", body: data });
+      pledges.push(pledge);
+      render();
+      $("success").classList.add("show");
+      // Keep the name so it's easy to sign up for another item
+      select.value = "";
+      form.classList.remove("is-other");
+      ["qty", "note", "otherItem"].forEach((id) => { $(id).value = ""; });
+      $("qty").placeholder = "";
+      form.querySelectorAll('input[name="otherFor"]').forEach((r) => { r.checked = false; });
+      setTimeout(load, 1500); // refresh from the sheet to pick up others' sign-ups
+    } catch (err) {
+      $("formStatus").textContent = "Sorry, something went wrong. Please check your connection and try again.";
+    }
+    btn.disabled = false;
+    btn.textContent = "Sign up";
+  });
+
+  ["name", "otherItem", "qty"].forEach((id) =>
+    $(id).addEventListener("input", () => $("f-" + id).classList.remove("show-error")));
+  form.querySelectorAll('input[name="otherFor"]').forEach((r) =>
+    r.addEventListener("change", () => $("f-otherFor").classList.remove("show-error")));
+
+  render();
+  load();
+</script>
+</body>
+</html>
